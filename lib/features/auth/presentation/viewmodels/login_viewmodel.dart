@@ -23,7 +23,6 @@ class LoginViewmodel extends ChangeNotifier {
     final email = emailController.text;
     final password = passwordController.text;
 
-    // Simulación de validación
     if (email == "admin@gmail.com" &&
         password == "12345678") {
 
