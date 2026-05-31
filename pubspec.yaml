@@ -39,6 +39,7 @@ dependencies:
   flutter_svg: ^2.3.0
   provider: ^6.1.2
   no_screenshot: ^1.1.0
+  detect_fake_location: ^2.3.2
 
 dev_dependencies:
   flutter_test:
