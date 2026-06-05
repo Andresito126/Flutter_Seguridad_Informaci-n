@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:seguridad_flutter/features/auth/presentation/screens/login_screen.dart';
+import 'package:seguridad_flutter/shared/screens/home_screen.dart';
 import 'package:seguridad_flutter/shared/theme/theme.dart';
 import 'package:seguridad_flutter/shared/theme/util.dart';
 
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       darkTheme: theme.dark(),
       themeMode:  ThemeMode.system,
         home: Scaffold(
-            body: LoginScreen(),
+            body: HomeScreen(),
         ),
     );
   }
