@@ -17,9 +17,11 @@ class MyApp extends StatelessWidget {
       theme: theme.light(),
       darkTheme: theme.dark(),
       themeMode:  ThemeMode.system,
-        home: Scaffold(
-            body: LoginScreen(),
-        ),
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        // '/second-page': (context) => const PageTwo(),
+      }
     );
   }
 }
