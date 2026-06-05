@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:detect_fake_location/detect_fake_location.dart'; 
-import 'package:seguridad_flutter/features/auth/presentation/viewmodels/login_viewmodel.dart';
+import 'package:detect_fake_location/detect_fake_location.dart';
+import 'package:seguridad_flutter/features/auth/presentation/providers/login_provider.dart';
+import 'package:seguridad_flutter/features/auth/presentation/screens/login_ui_state.dart';
 import 'package:seguridad_flutter/shared/components/ProtectedPage.dart';
 import 'package:seguridad_flutter/shared/components/button_component.dart';
 import 'package:seguridad_flutter/shared/components/button_icon.dart';
 import 'package:seguridad_flutter/shared/components/input_fields.dart';
 import 'package:seguridad_flutter/shared/components/title_section.dart';
-import 'package:seguridad_flutter/shared/services/ScreenshootProtection_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +21,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _usandoFakeGPS = false;
   bool _verificandoGPS = true;
 
+  // CONTROLLERS
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -29,11 +33,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _verificarFakeGPS() async {
-    setState(() { _verificandoGPS = true; });
+    setState(() {
+      _verificandoGPS = true;
+    });
 
     try {
       bool isFake = await DetectFakeLocation().detectFakeLocation();
-      
+
       setState(() {
         _usandoFakeGPS = isFake;
         _verificandoGPS = false;
@@ -41,21 +47,30 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       print("Error al detectar Fake GPS: $e");
       setState(() {
-        _verificandoGPS = false; // En caso de error, no bloqueamos al usuario drásticamente
+        _verificandoGPS =
+            false; // En caso de error, no bloqueamos al usuario drásticamente
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    
+    final signInProvider = context.watch<LoginProvider>();
+    final state = signInProvider.state;
+
+    // Navagación
+    if (state.status == LoginStatus.success) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Redirección a la nueva página después del login
+        Navigator.of(context).pushNamed('/second-page');
+      });
+    }
+
     // CASO A: MIENTRAS COMPRUEBA EL GPS, SE MUESTRA CARGANDO
     if (_verificandoGPS) {
       return const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -73,7 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 const Text(
                   '¡Entorno inseguro detectado!',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
@@ -95,141 +114,93 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // CASO C: SI EL ENTORNÓ ES SEGURO, RENDERIZA TU LOGIN ORIGINAL
     return ProtectedPage(
-        child: ChangeNotifierProvider(
-          create: (_) => LoginViewmodel(),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TitleSection(title: "SoftGenix"),
 
-          child: Scaffold(
-            backgroundColor: Colors.white,
-
-            body: SafeArea(
-              child: Consumer<LoginViewmodel>(
-                builder: (context, vm, child) {
-
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-
-                    children: [
-
-                      TitleSection(title: "SoftGenix"),
-
-                      InputFields(
-                        textInput: "Email",
-                        hTPlaceHolder: "Introduce tu gmail",
-                        iconInput: Icons.email_outlined,
-                        controller: vm.emailController,
-                      ),
-
-                      InputFields(
-                        textInput: "Password",
-                        hTPlaceHolder: "Introduce tu contraseña",
-                        isPassword: true,
-                        iconInput: Icons.lock_outline,
-                        controller: vm.passwordController,
-                        obscureText: vm.obscurePassword,
-                        onTogglePassword: vm.togglePasswordVisibility,
-                      ),
-
-                      if (vm.errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Text(
-                            vm.errorMessage!,
-                            style: TextStyle(
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-
-                      vm.isLoading
-                          ? CircularProgressIndicator()
-                          : ButtonComponent(
-                        textButton: "Iniciar Sesión",
-
-                        onPressed: () async {
-
-                          final success =
-                          await vm.login();
-
-                          if (success) {
-
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "Login exitoso",
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-
-                      SizedBox(height: 24),
-
-                      Padding(
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 24.0),
-
-                        child: Row(
-                          children: [
-
-                            Expanded(
-                              child: Divider(
-                                color: Colors.grey[300],
-                              ),
-                            ),
-
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 10.0,
-                              ),
-
-                              child: Text(
-                                "O continúa con",
-                              ),
-                            ),
-
-                            Expanded(
-                              child: Divider(
-                                color: Colors.grey[300],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: 24),
-
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
-
-                        child: Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.center,
-
-                          children: [
-
-                            ButtonIcon(
-                              imagePath:
-                              'assets/logos/google-icon.svg',
-                            ),
-
-                            SizedBox(width: 20),
-
-                            ButtonIcon(
-                              imagePath:
-                              'assets/logos/apple-icon.svg',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
+              InputFields(
+                textInput: "Email",
+                hTPlaceHolder: "Introduce tu gmail",
+                iconInput: Icons.email_outlined,
+                controller: _emailController,
               ),
-            ),
+
+              InputFields(
+                textInput: "Password",
+                hTPlaceHolder: "Introduce tu contraseña",
+                isPassword: true,
+                iconInput: Icons.lock_outline,
+                controller: _passwordController,
+                obscureText: true,
+                onTogglePassword: () {},
+              ),
+
+              if (state.status == LoginStatus.error)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    state.errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+
+              state.status == LoginStatus.loading
+                  ? CircularProgressIndicator()
+                  : ButtonComponent(
+                      textButton: "Iniciar Sesión",
+                      onPressed: () {
+                        context.read<LoginProvider>().login(
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text,
+                        );
+                      },
+                    ),
+
+              SizedBox(height: 24),
+
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0),
+
+                child: Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey[300])),
+
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10.0),
+
+                      child: Text("O continúa con"),
+                    ),
+
+                    Expanded(child: Divider(color: Colors.grey[300])),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 24),
+
+              Padding(
+                padding: EdgeInsets.all(8.0),
+
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+
+                  children: [
+                    ButtonIcon(imagePath: 'assets/logos/google-icon.svg'),
+
+                    SizedBox(width: 20),
+
+                    ButtonIcon(imagePath: 'assets/logos/apple-icon.svg'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 }
