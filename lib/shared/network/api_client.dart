@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 class ApiClient {
@@ -15,7 +14,10 @@ class ApiClient {
       }) async {
     final response = await http.get(
       Uri.parse('$baseUrl$endpoint'),
-      headers: headers,
+      headers: {
+        'Accept': 'application/json', 
+        ...?headers,
+      },
     );
 
     return _handleResponse(response);
@@ -30,6 +32,7 @@ class ApiClient {
       Uri.parse('$baseUrl$endpoint'),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...?headers,
       },
       body: jsonEncode(body),
@@ -47,6 +50,7 @@ class ApiClient {
       Uri.parse('$baseUrl$endpoint'),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...?headers,
       },
       body: jsonEncode(body),
@@ -63,6 +67,7 @@ class ApiClient {
       Uri.parse('$baseUrl$endpoint'),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...?headers,
       }
     );
@@ -71,27 +76,25 @@ class ApiClient {
   }
 
   dynamic _handleResponse(http.Response response) {
-    final decodedBody = jsonDecode(response.body);
-
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      try {
+        return jsonDecode(response.body);
+      } catch (e) {
+        throw Exception('El servidor respondió con código exitoso, pero el formato no es JSON válido.');
+      }
+    } 
+    
     switch (response.statusCode) {
-      case 200:
-      case 201:
-        return decodedBody;
-
       case 400:
         throw Exception('Bad Request');
-
       case 401:
         throw Exception('Unauthorized');
-
       case 404:
         throw Exception('Not Found');
-
       case 500:
         throw Exception('Server Error');
-
       default:
-        throw Exception('Unexpected Error');
+        throw Exception('Unexpected Error: ${response.statusCode}');
     }
   }
 }

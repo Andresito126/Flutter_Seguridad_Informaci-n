@@ -11,8 +11,15 @@ class SessionProvider extends ChangeNotifier {
     required this.sessionManager
   });
 
-  Future<void> loadSession() async {
-    _token = await sessionManager.getToken();
+Future<void> loadSession() async {
+    final isLocked = await sessionManager.isSessionLocked();
+    
+    if (isLocked) {
+      _token = null; 
+    } else {
+      _token = await sessionManager.getToken();
+    }
+    
     notifyListeners();
   }
 
@@ -22,7 +29,15 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
+  Future<void> lockSession() async {
+    final now = DateTime.now().toIso8601String();
+    await sessionManager.saveInactivityTime(now); 
+    _token = null; 
+    notifyListeners();
+  }
+
+
+Future<void> logout() async {
     await sessionManager.clearSession();
     _token = null;
     notifyListeners();

@@ -21,7 +21,7 @@ void main() {
           create: (_) => AuthModule(appContainer).loginProvider,
         ),
       ],
-      child: DevicePreview(enabled: kIsWeb, builder: (context) => const MyApp()),
+      child: DevicePreview(enabled: kIsWeb, builder: (context) => MyApp()),
     ),
   );
 }

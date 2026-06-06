@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:detect_fake_location/detect_fake_location.dart';
 import 'package:seguridad_flutter/features/auth/presentation/providers/login_provider.dart';
 import 'package:seguridad_flutter/features/auth/presentation/screens/login_ui_state.dart';
+import 'package:seguridad_flutter/features/auth/presentation/viewmodels/inactivity_view_model.dart';
 import 'package:seguridad_flutter/shared/components/ProtectedPage.dart';
 import 'package:seguridad_flutter/shared/components/button_component.dart';
 import 'package:seguridad_flutter/shared/components/button_icon.dart';
@@ -57,12 +58,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final signInProvider = context.watch<LoginProvider>();
     final state = signInProvider.state;
+    
 
     // Navagación
-    if (state.status == LoginStatus.success) {
+if (state.status == LoginStatus.success) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Redirección a la nueva página después del login
-        Navigator.of(context).pushNamed('/second-page');
+        
+        context.read<LoginProvider>().resetState();
+
+        context.read<InactivityViewModel>().resetTimer();
+
+        Navigator.of(context).pushReplacementNamed('/home');
+        
       });
     }
 

@@ -9,13 +9,17 @@ class LoginProvider extends ChangeNotifier {
   final LoginUsecase _loginUseCase;
   final SessionProvider _sessionProvider;
 
-  // Métodos
+  
   LoginProvider(this._loginUseCase, this._sessionProvider);
 
   LoginUiState get state => _state;
 
+  void resetState() {
+    _state = LoginUiState(); 
+    notifyListeners();
+  }
+
   Future<void> login({required String email, required String password}) async {
-    // Campos nulos
     if (email.isEmpty || password.isEmpty) {
       _state = _state.copyWith(
         status: LoginStatus.error,
@@ -25,17 +29,16 @@ class LoginProvider extends ChangeNotifier {
       return;
     }
 
-    // Muestra de banner
     _state = _state.copyWith(status: LoginStatus.loading);
     notifyListeners();
-
-    // Ejecutamos el caso de uso
+    
     final result = await _loginUseCase(email, password);
 
     switch (result) {
       case Success():
         await _sessionProvider.saveToken(result.data.token);
         _state = _state.copyWith(status: LoginStatus.success);
+        notifyListeners();
         break;
 
       case Failure():
