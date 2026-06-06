@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 class InactivityViewModel extends ChangeNotifier {
   Timer? _timer;
-  final int inactivityMinutes = 1; 
+  final int inactivitySeconds = 10; 
   final Function onSessionExpired;
 
   InactivityViewModel({required this.onSessionExpired}) {
@@ -13,13 +13,12 @@ class InactivityViewModel extends ChangeNotifier {
   void startTimer() {
     _timer?.cancel();
     
-    _timer = Timer(Duration(minutes: inactivityMinutes), () {
+    _timer = Timer(Duration(seconds: inactivitySeconds), () {
       onSessionExpired();
     });
   }
 
   void resetTimer() {
-    
     startTimer();
   }
 

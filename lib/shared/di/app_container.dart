@@ -14,7 +14,7 @@ class AppContainer {
 
   AppContainer() {
     secureStorage = const FlutterSecureStorage();
-    apiClient = ApiClient(baseUrl: 'http://localhost:3000');
+    apiClient = ApiClient(baseUrl: 'http://34.236.35.114:3000/api');
     sessionManager = SessionManager(secureStorage: secureStorage);
     sessionProvider = SessionProvider(sessionManager: sessionManager);
     screenshotService = ScreenshootprotectionserviceImpl();
