@@ -8,6 +8,8 @@ import 'package:seguridad_flutter/app.dart';
 import 'package:seguridad_flutter/features/auth/di/auth_module.dart';
 import 'package:seguridad_flutter/features/auth/presentation/providers/login_provider.dart';
 import 'package:seguridad_flutter/shared/di/app_container.dart';
+import 'package:seguridad_flutter/shared/security/app_security_service.dart';
+import 'package:seguridad_flutter/shared/security/security_provider.dart';
 import 'package:seguridad_flutter/shared/services/ScreenshootProtection_service.dart';
 import 'package:seguridad_flutter/shared/session/session_provider.dart';
 
@@ -45,6 +47,11 @@ void _showLocalNotification(RemoteMessage message) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final securityService = AppSecurityService(
+    simulateProduction: false,
+    forceBlock: false,
+  );
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -96,8 +103,11 @@ void main() async {
         ChangeNotifierProvider<LoginProvider>(
           create: (_) => AuthModule(appContainer).loginProvider,
         ),
+        ChangeNotifierProvider<SecurityProvider>(
+          create: (_) => SecurityProvider(securityService: securityService),
+        ),
       ],
-      child: DevicePreview(enabled: kIsWeb, builder: (context) => MyApp()),
+      child: DevicePreview(enabled: kIsWeb, builder: (context) => const MyApp()),
     ),
   );
 }

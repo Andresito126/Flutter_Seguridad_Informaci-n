@@ -6,12 +6,18 @@ import 'package:seguridad_flutter/shared/session/session_provider.dart';
 import 'package:seguridad_flutter/shared/theme/theme.dart';
 import 'package:seguridad_flutter/shared/theme/util.dart';
 import 'package:provider/provider.dart';
+import 'package:seguridad_flutter/shared/security/security_blocked_page.dart';
+import 'package:seguridad_flutter/shared/security/security_provider.dart';
 
 final GlobalKey<NavigatorState> globalNavigatorKey =
     GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  /// Sólo se usa en pruebas de widget para forzar un estado de bloqueo
+  /// sin necesitar un [SecurityProvider] real.
+  final bool? isBlockedOverride;
+
+  const MyApp({super.key, this.isBlockedOverride});
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +71,13 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const HomeScreen(),
         },
         builder: (context, child) {
+          final isBlocked = isBlockedOverride
+              ?? context.watch<SecurityProvider>().isBlocked;
+
+          if (isBlocked) {
+            return const SecurityBlockedPage();
+          }
+
           return Listener(
             behavior: HitTestBehavior.translucent,
             onPointerDown: (_) {
