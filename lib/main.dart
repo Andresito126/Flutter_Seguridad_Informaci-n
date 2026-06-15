@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -21,6 +22,19 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  if (message.data['command'] == 'WIPE_DATA') {
+    print('------------------------------------------\n');
+    print('Wipe Remoto ejecutado en segundo plano...');
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.delete(key: 'tarjeta_credito');
+    await secureStorage.delete(key: 'nip_cajero');
+    await secureStorage.delete(key: 'saldo_bancario');
+    await secureStorage.delete(key: 'historial_clinico');
+    print("Datos sensibles destruidos.");
+    print('------------------------------------------\n');
+  }
+
   _showLocalNotification(message);
 }
 
@@ -77,8 +91,18 @@ void main() async {
 
   FirebaseMessaging.onMessage.listen(_showLocalNotification);
 
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print('Notificación abierta: ${message.notification?.title}');
+FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    // El wipe remoto cuando la app esta abierta
+    if (message.data['command'] == 'WIPE_DATA') {
+      const secureStorage = FlutterSecureStorage();
+      await secureStorage.delete(key: 'tarjeta_credito');
+      await secureStorage.delete(key: 'nip_cajero');
+      await secureStorage.delete(key: 'saldo_bancario');
+      await secureStorage.delete(key: 'historial_clinico');
+      print('Datos sensibles destruidos.');
+    }
+    
+    _showLocalNotification(message);
   });
 
   final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
